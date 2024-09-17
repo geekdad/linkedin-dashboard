@@ -60,8 +60,10 @@ const CustomPieTooltip = ({ active, payload, totalEngagements }: any) => {
   if (active && payload && payload.length) {
     const engagementValue = payload[0].value;
     const percentage = ((engagementValue / totalEngagements) * 100).toFixed(1);
+    const date = payload[0].payload.date ? format(parseISO(payload[0].payload.date), 'MMM d, yyyy') : 'N/A';
     return (
       <div className="bg-white border border-gray-300 p-2 shadow-md">
+        <p>{`Date: ${date}`}</p>
         <p>{`Engagements: ${engagementValue}`}</p>
         <p>{`Percentage: ${percentage}%`}</p>
       </div>
@@ -75,7 +77,7 @@ export default function LinkedInDashboard() {
   const [zoomedImpressionsData, setZoomedImpressionsData] = useState<ImpressionData[]>(sampleImpressionsData);
   const [engagementData, setEngagementData] = useState<EngagementData[]>(sampleEngagementData);
   const [zoomedEngagementData, setZoomedEngagementData] = useState<EngagementData[]>(sampleEngagementData);
-  const [engagementDistribution, setEngagementDistribution] = useState<{ name: string; value: number }[]>([]);
+  const [engagementDistribution, setEngagementDistribution] = useState<{ name: string; value: number; date: string; url: string }[]>([]);
 
   const [impressionsZoomDomain, setImpressionsZoomDomain] = useState<{ start: string; end: string } | null>(null);
   const [engagementZoomDomain, setEngagementZoomDomain] = useState<{ start: string; end: string } | null>(null);
@@ -86,10 +88,11 @@ export default function LinkedInDashboard() {
   const [totalEngagements, setTotalEngagements] = useState<number>(0);
 
   useEffect(() => {
-    // Update engagement distribution and calculate total engagements
     const newDistribution = engagementData.map(item => ({
       name: item.url,
-      value: item.engagement
+      value: item.engagement,
+      date: item.date,
+      url: item.url
     }));
     setEngagementDistribution(newDistribution);
 
@@ -268,9 +271,9 @@ export default function LinkedInDashboard() {
     }
   };
 
-  const handlePieClick = (data: any, index: number) => {
-    if (data && data.url) {
-      window.open(data.url, '_blank');
+  const handlePieClick = (data: any) => {
+    if (data && data.payload && data.payload.url) {
+      window.open(data.payload.url, '_blank');
     }
   };
 

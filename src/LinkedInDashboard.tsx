@@ -32,10 +32,10 @@ const sampleEngagementData: EngagementData[] = [
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, isDarkMode }: any) => {
   if (active && payload && payload.length && payload[0].value > 0) {
     return (
-      <div className="bg-white border border-gray-300 p-2 shadow-md">
+      <div className={`border p-2 shadow-md ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}>
         <p className="font-bold">{`Date: ${format(parseISO(label), 'MMM d, yyyy')}`}</p>
         <p>{`${payload[0].name}: ${payload[0].value}`}</p>
       </div>
@@ -44,10 +44,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const CustomEngagementTooltip = ({ active, payload, label }: any) => {
+const CustomEngagementTooltip = ({ active, payload, label, isDarkMode }: any) => {
   if (active && payload && payload.length && payload[0].value > 0) {
     return (
-      <div className="bg-white border border-gray-300 p-2 shadow-md">
+      <div className={`border p-2 shadow-md ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}>
         <p className="font-bold">{`Date: ${format(parseISO(label), 'MMM d, yyyy')}`}</p>
         <p>{`Engagements: ${payload[0].value}`}</p>
       </div>
@@ -56,13 +56,13 @@ const CustomEngagementTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const CustomPieTooltip = ({ active, payload, totalEngagements }: any) => {
+const CustomPieTooltip = ({ active, payload, totalEngagements, isDarkMode }: any) => {
   if (active && payload && payload.length) {
     const engagementValue = payload[0].value;
     const percentage = ((engagementValue / totalEngagements) * 100).toFixed(1);
     const date = payload[0].payload.date ? format(parseISO(payload[0].payload.date), 'MMM d, yyyy') : 'N/A';
     return (
-      <div className="bg-white border border-gray-300 p-2 shadow-md">
+      <div className={`border p-2 shadow-md ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}>
         <p>{`Date: ${date}`}</p>
         <p>{`Engagements: ${engagementValue}`}</p>
         <p>{`Percentage: ${percentage}%`}</p>
@@ -86,6 +86,11 @@ export default function LinkedInDashboard() {
   const [activeChart, setActiveChart] = useState<'impressions' | 'engagement' | null>(null);
 
   const [totalEngagements, setTotalEngagements] = useState<number>(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   useEffect(() => {
     const newDistribution = engagementData.map(item => ({
@@ -278,9 +283,26 @@ export default function LinkedInDashboard() {
   };
 
   return (
-    <div className="p-4 space-y-8">
+    <div className={`p-4 space-y-8 ${isDarkMode ? 'dark bg-gray-800 text-white' : 'bg-white text-black'}`}>
       <h1 className="text-3xl font-bold text-center mb-6">LinkedIn Analytics Dashboard</h1>
       
+      <div className="flex justify-center items-center mb-4">
+        <span className="mr-2">Light</span>
+        <div 
+          className={`w-14 h-7 flex items-center rounded-full p-1 cursor-pointer ${
+            isDarkMode ? 'bg-blue-500' : 'bg-gray-300'
+          }`}
+          onClick={toggleDarkMode}
+        >
+          <div
+            className={`bg-white w-5 h-5 rounded-full shadow-md transform duration-300 ease-in-out ${
+              isDarkMode ? 'translate-x-7' : ''
+            }`}
+          ></div>
+        </div>
+        <span className="ml-2">Dark</span>
+      </div>
+
       <div className="flex justify-center space-x-4">
         <div>
           <input
@@ -307,7 +329,7 @@ export default function LinkedInDashboard() {
           />
           <label 
             htmlFor="engagement-upload" 
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer inline-block"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer inline-block"
           >
             Upload Engagement Data
           </label>
@@ -336,17 +358,17 @@ export default function LinkedInDashboard() {
                 ticks={getUniqueMonthTicks(zoomedImpressionsData)}
                 type="category"
                 allowDataOverflow
-                axisLine={{ stroke: '#E5E7EB' }}
-                tickLine={false}
+                axisLine={{ stroke: isDarkMode ? '#ffffff' : '#E5E7EB' }}
+                tick={{ fill: isDarkMode ? '#ffffff' : '#000000' }}
               />
               <YAxis 
-                axisLine={{ stroke: '#E5E7EB' }}
-                tickLine={false}
+                axisLine={{ stroke: isDarkMode ? '#ffffff' : '#E5E7EB' }}
+                tick={{ fill: isDarkMode ? '#ffffff' : '#000000' }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip isDarkMode={isDarkMode} />} />
               <Bar 
                 dataKey="impressions" 
-                fill="#82ca9d"
+                fill={isDarkMode ? "#4ade80" : "#82ca9d"}
                 isAnimationActive={false}
                 onClick={handleBarClick}
                 shape={(props: any) => {
@@ -357,7 +379,7 @@ export default function LinkedInDashboard() {
                       y={y} 
                       width={width} 
                       height={height} 
-                      fill={value > 0 ? "#82ca9d" : "transparent"} 
+                      fill={value > 0 ? (isDarkMode ? "#4ade80" : "#82ca9d") : "transparent"} 
                       style={{ cursor: 'pointer' }}
                     />
                   );
@@ -393,14 +415,17 @@ export default function LinkedInDashboard() {
                 ticks={getUniqueMonthTicks(zoomedEngagementData)}
                 type="category"
                 allowDataOverflow
-                axisLine={{ stroke: '#E5E7EB' }}
-                tickLine={false}
+                axisLine={{ stroke: isDarkMode ? '#ffffff' : '#E5E7EB' }}
+                tick={{ fill: isDarkMode ? '#ffffff' : '#000000' }}
               />
-              <YAxis axisLine={{ stroke: '#E5E7EB' }} tickLine={false} />
-              <Tooltip content={<CustomEngagementTooltip />} />
+              <YAxis 
+                axisLine={{ stroke: isDarkMode ? '#ffffff' : '#E5E7EB' }}
+                tick={{ fill: isDarkMode ? '#ffffff' : '#000000' }}
+              />
+              <Tooltip content={<CustomEngagementTooltip isDarkMode={isDarkMode} />} />
               <Bar 
                 dataKey="engagement" 
-                fill="#82ca9d"
+                fill={isDarkMode ? "#4ade80" : "#82ca9d"}
                 onClick={handleBarClick}
                 shape={(props: any) => {
                   const { x, y, width, height, value } = props;
@@ -410,7 +435,7 @@ export default function LinkedInDashboard() {
                       y={y} 
                       width={width} 
                       height={height} 
-                      fill={value > 0 ? "#82ca9d" : "transparent"} 
+                      fill={value > 0 ? (isDarkMode ? "#4ade80" : "#82ca9d") : "transparent"} 
                       style={{ cursor: 'pointer' }}
                     />
                   );
@@ -446,7 +471,7 @@ export default function LinkedInDashboard() {
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomPieTooltip totalEngagements={totalEngagements} />} />
+              <Tooltip content={<CustomPieTooltip totalEngagements={totalEngagements} isDarkMode={isDarkMode} />} />
             </PieChart>
           </ResponsiveContainer>
         </div>
